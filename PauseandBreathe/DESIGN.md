@@ -1,0 +1,25 @@
+#  Technical Design for Pause and Breathe
+
+This document will systematically explain the code behind each feature.
+
+##  Animated Breathing Circle
+
+The circle was created using the `UIView` class, with its position and size determined by arguments passed into a `CGRect` constructor. I wanted to enable the circle to be in the same position regardless of the screen size, so I created variables that stored the values of the screen width and height and used them to define the x and y coordinates of the circle. There are methods associated with `UIView` objects that I used to make the circle gray and specify its radius. I used the animate method from the `UIView` class to animate the circle. I decided to split the expansion and contraction into two separate functions because the duration of the inhale and exhale could change due to the User's input, and I wanted the animation to reflect that change. Because the functions call each other when the animation has completed, the cirlce expands and contracts smoothly and for as long as the App is running. To ensure that the User knows when to inhale and exhale, I added a label that reads "Breathe in" when the circle expands and "Breathe out" when the circle contracts. The code to change the text of the label is included in the functions that execute the animations. 
+
+## Sliders
+
+The sliders enable the user to pick the duration of the inhale and exhale, and I tied the manipulation of each bar to an IBAction function. I saved the current value of the slider in global variables,  `inhaleDuration`/`exhaleDuration`. If the duration of the inhale is as long or longer than the duration of the exhale, `inhaleDuration` is set to `exhaleDuration` - 1. I then set the text of the label for the slider to the length of the inhale or exhale (depending on which slider I was working with).
+
+## Background Audio
+
+I found audio recordings (under Creative Commons License Attribution 3.0) and brought them into the project. I created two instances of the `AVAudioPlayer`, which plays audio files. In `viewDidLoad()`, I accessed the full pathname of the audio files through `Bundle.main.path` and use that to load the instances of the `AVAudioPlayer` with content. Because it's possible that there may be no audio files contained in the file associated with the pathname, error handling techniques (i.e., a try-catch statement) must be used to avoid crashes. Because the audio files are now loaded into the instances of the `AVAudioPlayer`, the audio files can be played, paused, looped, etc. 
+
+Because the audio plays when the User presses the appropriate button, I created IBAction functions that are linked to button press events. Because I don't want the two audio files to play simultaneously, I check if the other audio file is playing with `isPlaying()`, and then proceed to pause or play the appropriate audio file. Because I want the audio files to play on loop until the User switches it off or plays the other audio file, I set `numberOfLoops` to -1. 
+
+## Stopwatch
+
+An instance of the stopwatch is created as a global variable (called `timer`) so it can be used in other functions, and there are booleans that keep track of whether the stopwatch is active and whether it is visible. Initially, the stopwatch is not active and is visible. Once the User presses `Start`, `timer` is instantiated with a `Timer` constructor, where the time interval, selector, and whether the timer repeats is specified. For the purposes of this App, the time interval is set to one second and the timer repeats, meaning that it will continue firing after the first time it fires. The selector is a function that runs every time the timer fires (i.e., after every one second interval). Because `Timer` is part of the Objective-C runtime, `@objc` is needed in the declaration of the selector. In order for the stopwatch to count up, the global variable `count` increments by 1 in `updateCount`, and the amount of time that has passed is formatted by a separate function, `timeString(from timeInterval: Int)`. Timers are typically run on the default run loop mode, but the issue is that when the User interacts with the UI, the timer gets interrupted. To avoid this issue, I specified that the timer is added to the `commonModes` run loop, which effectively allows the timer to run undisturbed when the User interacts with the UI.
+
+The timer can be paused with `invalidate()` and can start again with a re-instantiation of the timer. Because `count` is a global variable, the timer picks up on where it left off and continues counting from there. To reset the timer, `count` is set to zero and the timer is invalidated. The boolean `started` is also set to false.
+
+To hide the `timerCount` label, `startButton`, and `resetButton`, `isHidden` can be set to `true`. To disable the buttons, `isEnabled` can be set to  `false`. This is done in the IBAction function `hideShowTimer()`. A boolean, `show`, keeps track of whether the buttons and labels need to be displayed and enabled. 
